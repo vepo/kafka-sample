@@ -1,0 +1,44 @@
+version: '3'
+services:
+  zookeeper:
+    build:
+      dockerfile: dockerfiles/Zookeeper.dockerfile
+      context: .
+    ports:
+      - "2181:2181"
+  kafka:
+    build:
+      dockerfile: dockerfiles/Kafka.dockerfile
+      context: .
+    ports:
+      - "9092:9092"
+    environment:
+      - ZK_CHROOT=zookeeper:2181
+      - ADVERTISED_HOST=kafka
+    links:
+      - zookeeper
+    depends_on:
+      - zookeeper
+  consumer:
+    build:
+      dockerfile: dockerfiles/Consumer.dockerfile
+      context: .
+    depends_on:
+      - kafka
+    links:
+      - kafka
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=topic
+  producer:
+    build:
+      dockerfile: dockerfiles/Producer.dockerfile
+      context: .
+    depends_on:
+      - kafka
+    links:
+      - kafka
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_TOPIC=topic
+  
